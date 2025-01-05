@@ -8,6 +8,7 @@ Created with React and Typescript with Tailwind CSS for the frontend. Flask and 
 
 
 ## features to add
+- mobile playability
 - QOL features:
     - highlighting numbers
 - guest play
