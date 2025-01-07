@@ -10,6 +10,7 @@ interface GameBoardProps {
 const GameBoard = ({ initialPuzzle, selectedNumber, setSelectedNumber }: GameBoardProps) => {
     const [board, setBoard] = useState<(number | undefined)[][]>(initialPuzzle.map(row => [...row]));
     const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
+    const [highlightedNumber, setHighlightedNumber] = useState<number | null>(null);
 
     const isValidMove = (row: number, col: number, num: number): boolean => {
         // Check row
@@ -35,6 +36,13 @@ const GameBoard = ({ initialPuzzle, selectedNumber, setSelectedNumber }: GameBoa
     };
 
     const handleCellClick = (row: number, col: number) => {
+        const cellValue = board[row][col];
+
+        if (cellValue !== undefined) {
+            // If the clicked cell has a number, set that number as the highlighted one
+            setHighlightedNumber(cellValue); 
+            setSelectedCell({ row, col });  // Select the clicked cell for highlighting
+        }
         // console.log('Selected number:', selectedNumber); // Debugging line
         if (selectedCell?.row === row && selectedCell?.col === col) {
             // If the cell is already selected, unselect it
@@ -103,11 +111,12 @@ const GameBoard = ({ initialPuzzle, selectedNumber, setSelectedNumber }: GameBoa
                     value={board[rowIndex][colIndex]}
                     editable={initialPuzzle[rowIndex][colIndex] === undefined}
                     highlighted={!!(
-                    selectedCell &&
-                    (rowIndex === selectedCell.row ||
-                        colIndex === selectedCell.col ||
-                        (Math.floor(rowIndex / 3) === Math.floor(selectedCell.row / 3) &&
-                        Math.floor(colIndex / 3) === Math.floor(selectedCell.col / 3)))
+                        selectedCell &&
+                        (rowIndex === selectedCell.row ||
+                            colIndex === selectedCell.col ||
+                            (Math.floor(rowIndex / 3) === Math.floor(selectedCell.row / 3) &&
+                            Math.floor(colIndex / 3) === Math.floor(selectedCell.col / 3))) ||
+                            (highlightedNumber !== null && board[rowIndex][colIndex] === highlightedNumber)  // Highlight all cells with the same number
                     )}
                     selected={selectedCell?.row === rowIndex && selectedCell?.col === colIndex}
                     isConflicted={isConflicted(rowIndex, colIndex)}
