@@ -22,7 +22,11 @@ const useTimer = (isRunning: boolean = true) => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  return { time: formatTime(), seconds };
+  const resetTimer = () => {
+    setSeconds(0);
+  };
+
+  return { time: formatTime(), seconds, resetTimer};
 };
 
 export default useTimer;

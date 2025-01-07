@@ -4,18 +4,19 @@ interface SudokuCellProps {
   highlighted: boolean;
   selected: boolean;
   onClick: () => void;
+  editable: boolean;
   value?: number;
   isConflicted?: boolean;
 }
 
-const SudokuCell = ({ highlighted, selected, onClick, value, isConflicted }: SudokuCellProps) => {
+const SudokuCell = ({ highlighted, selected, onClick, editable, value, isConflicted }: SudokuCellProps) => {
   return (
     <div 
       onClick={onClick}
       className={`w-full h-full flex items-center justify-center text-lg font-medium transition-all duration-150 cursor-pointer
         ${highlighted ? 'bg-blue-50' : 'bg-white'}
         ${selected ? 'bg-blue-100 ring-2 ring-blue-500 ring-inset' : ''}
-        ${isConflicted ? 'text-red-500 bg-red-50' : value ? 'text-gray-700' : ''}
+        ${isConflicted ? 'text-red-500 bg-red-50' : value ? editable ? 'text-blue-700' : 'text-gray-700' : ''}
         hover:bg-blue-50
       `}
       style={{ 

@@ -2,14 +2,13 @@ import React, { useState, useEffect, useCallback} from 'react';
 import SudokuCell from './SudokuCell';
 
 interface GameBoardProps {
+    initialPuzzle: (number | undefined)[][];
     selectedNumber: number | null;
     setSelectedNumber: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
-const GameBoard = ({ selectedNumber, setSelectedNumber }: GameBoardProps) => {
-    const [board, setBoard] = useState<(number | undefined)[][]>(
-        Array(9).fill(undefined).map(() => Array(9).fill(undefined))
-    );
+const GameBoard = ({ initialPuzzle, selectedNumber, setSelectedNumber }: GameBoardProps) => {
+    const [board, setBoard] = useState<(number | undefined)[][]>(initialPuzzle.map(row => [...row]));
     const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
 
     const isValidMove = (row: number, col: number, num: number): boolean => {
@@ -51,15 +50,15 @@ const GameBoard = ({ selectedNumber, setSelectedNumber }: GameBoardProps) => {
 
     // Wrap handleNumberPlacement in useCallback to avoid re-creating it on each render
     const handleNumberPlacement = useCallback((row: number, col: number) => {
-        if (selectedNumber !== null) {
-        const newBoard = [...board];
-        // If the cell already has the selected number, clear it
-        if (board[row][col] === selectedNumber) {
-            newBoard[row][col] = undefined;
-        } else {
-            newBoard[row][col] = selectedNumber; // Place the selected number in the cell
-        }
-        setBoard(newBoard); // Update the board state
+        if (selectedNumber !== null && initialPuzzle[row][col] === undefined) {
+            const newBoard = [...board];
+            // If the cell already has the selected number, clear it
+            if (board[row][col] === selectedNumber) {
+                newBoard[row][col] = undefined;
+            } else {
+                newBoard[row][col] = selectedNumber; // Place the selected number in the cell
+            }
+            setBoard(newBoard); // Update the board state
         }
     }, [board, selectedNumber]);
 
@@ -102,6 +101,7 @@ const GameBoard = ({ selectedNumber, setSelectedNumber }: GameBoardProps) => {
                 >
                 <SudokuCell
                     value={board[rowIndex][colIndex]}
+                    editable={initialPuzzle[rowIndex][colIndex] === undefined}
                     highlighted={!!(
                     selectedCell &&
                     (rowIndex === selectedCell.row ||
