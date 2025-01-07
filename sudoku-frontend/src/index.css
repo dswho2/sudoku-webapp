@@ -1,3 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Apply global styles for dark mode */
+body {
+  @apply bg-gray-900 text-white; /* default dark mode styles */
+}
+
+html.light body {
+  @apply bg-white text-black; /* light mode */
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
