@@ -1,3 +1,4 @@
+// SudokuCell.tsx
 import React from 'react';
 
 interface SudokuCellProps {
@@ -22,12 +23,12 @@ const SudokuCell = ({ highlighted, selected, onClick, editable, value, isConflic
       style={{ 
         height: '100%', 
         width: '100%', 
-        minHeight: '40px',  // Ensures each cell has a minimum size
-        minWidth: '40px',   // Ensures each cell has a minimum size
-        maxHeight: '60px',  // Limits the maximum height to avoid distortion
-        maxWidth: '60px',   // Limits the maximum width to avoid distortion
-        fontSize: '1.5rem', // Set a consistent font size
-        textAlign: 'center' // Center text horizontally
+        minHeight: '40px',
+        minWidth: '40px',
+        maxHeight: '60px',
+        maxWidth: '60px',
+        fontSize: '1.5rem',
+        textAlign: 'center'
       }}
     >
       <span className="text-center text-xl font-medium">

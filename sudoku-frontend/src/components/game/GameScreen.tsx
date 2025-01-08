@@ -1,37 +1,101 @@
-// components/game/GameScreen.tsx
-import React, { useState } from 'react';
+// GameScreen.tsx
+import React, { useState, useEffect, useCallback } from 'react';
 import { Menu as MenuIcon, Undo2, Eraser, PenLine, Lightbulb } from 'lucide-react';
 import GameBoard from './GameBoard';
 import NumberButton from './NumberButton';
 import ActionButton from './ActionButton';
+import VictoryScreen from './VictoryScreen';
 import Menu from './Menu';
 import useTimer from '../../hooks/useTimer';
+import { generateSudoku } from '../utils/generateSudoku';
 
-const generateNewPuzzle = () => {
-  return [
-    [5, 3, undefined, undefined, 7, undefined, undefined, undefined, undefined],
-    [6, undefined, undefined, 1, 9, 5, undefined, undefined, undefined],
-    [undefined, 9, 8, undefined, undefined, undefined, undefined, 6, undefined],
-    [8, undefined, undefined, undefined, 6, undefined, undefined, undefined, 3],
-    [4, undefined, undefined, 8, undefined, 3, undefined, undefined, 1],
-    [7, undefined, undefined, undefined, 2, undefined, undefined, undefined, 6],
-    [undefined, 6, undefined, undefined, undefined, undefined, 2, 8, undefined],
-    [undefined, undefined, undefined, 4, 1, 9, undefined, undefined, 5],
-    [undefined, undefined, undefined, undefined, 8, undefined, undefined, 7, 9],
-  ];
-}
+const generateNewPuzzle = (clues: number = 20) => {
+  // testing victory screen
+  // const puzzle = [
+  //   [1,2,3,4,undefined,6,7,8,9],
+  //   [4,5,6,7,8,9,1,2,3],
+  //   [7,8,9,1,2,3,4,5,6],
+  //   [2,1,4,3,6,5,8,9,7],
+  //   [3,6,5,8,9,7,2,1,4],
+  //   [8,9,7,2,1,4,3,6,5],
+  //   [5,3,1,6,4,2,9,7,8],
+  //   [6,4,2,9,7,8,5,3,1],
+  //   [9,7,8,5,3,1,6,4,2],
+  // ];
+  // const solution =  [
+  //   [1,2,3,4,5,6,7,8,9],
+  //   [4,5,6,7,8,9,1,2,3],
+  //   [7,8,9,1,2,3,4,5,6],
+  //   [2,1,4,3,6,5,8,9,7],
+  //   [3,6,5,8,9,7,2,1,4],
+  //   [8,9,7,2,1,4,3,6,5],
+  //   [5,3,1,6,4,2,9,7,8],
+  //   [6,4,2,9,7,8,5,3,1],
+  //   [9,7,8,5,3,1,6,4,2],
+  // ];
+  
+
+  const { puzzle, solution } = generateSudoku(clues);
+  return { puzzle, solution };
+};
 
 const GameScreen = () => {
-  const [initialPuzzle, setInitialPuzzle] = useState(generateNewPuzzle());
+  const [initialPuzzle, setInitialPuzzle] = useState<(number | undefined)[][] | null>(null);
+  const [currentPuzzle, setCurrentPuzzle] = useState<(number | undefined)[][] | null>(null);
+  const [solution, setSolution] = useState<(number | undefined)[][] | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
+  const [isSolved, setIsSolved] = useState(false);
   const { time, resetTimer } = useTimer(true);
 
-  const handleNewGame = () => {
-    const newPuzzle = generateNewPuzzle();
-    setInitialPuzzle(newPuzzle);
-    resetTimer(); // Reset the timer for the new game
+  useEffect(() => {
+    const { puzzle, solution } = generateNewPuzzle(20);
+    setInitialPuzzle(puzzle);
+    setCurrentPuzzle(puzzle.map(row => [...row]));
+    setSolution(solution);
+  }, []);
+
+  const handleNewGame = useCallback(() => {
+    const { puzzle, solution } = generateNewPuzzle(20);
+    setInitialPuzzle(puzzle);
+    setCurrentPuzzle(puzzle.map(row => [...row]));
+    setSolution(solution);
+    setSelectedNumber(null);
+    setSelectedAction(null);
+    setIsSolved(false);
+    resetTimer();
+  }, [resetTimer]);
+
+  // const isPuzzleSolved = useMemo(() => {
+  //   if (!currentPuzzle || !solution) return false;
+    
+  //   return currentPuzzle.every((row, rowIndex) =>
+  //     row.every((cell, colIndex) => 
+  //       cell !== undefined && cell === solution[rowIndex][colIndex]
+  //     )
+  //   );
+  // }, [currentPuzzle, solution]);
+
+  const updateBoard = (rowIndex: number, colIndex: number, number: number) => {
+    if (!currentPuzzle || !initialPuzzle) return;
+
+    const updatedPuzzle = currentPuzzle.map(row => [...row]);
+    updatedPuzzle[rowIndex][colIndex] = number;
+    setCurrentPuzzle(updatedPuzzle);
+
+    const isBoardFull = updatedPuzzle.every(row => 
+      row.every(cell => cell !== undefined)
+    );
+
+    if (isBoardFull) {
+      const isCorrect = updatedPuzzle.every((row, rowIndex) =>
+        row.every((cell, colIndex) => 
+          cell === solution?.[rowIndex][colIndex]
+        )
+      );
+      setIsSolved(isCorrect);
+    }
   };
 
   return (
@@ -43,53 +107,59 @@ const GameScreen = () => {
           <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <MenuIcon size={24} />
           </button>
-          <Menu isOpen={isMenuOpen} onNewGame={() => {}} />
+          <Menu isOpen={isMenuOpen} onNewGame={handleNewGame} />
         </div>
       </div>
-
       <div className="w-full max-w-md flex flex-col items-center">
-        <GameBoard
-          initialPuzzle={initialPuzzle}
-          selectedNumber={selectedNumber}
-          setSelectedNumber={setSelectedNumber}
-        />
+        {!isSolved && initialPuzzle && currentPuzzle && (
+          <GameBoard
+            key={initialPuzzle.toString()}
+            initialPuzzle={initialPuzzle}
+            currentPuzzle={currentPuzzle}
+            selectedNumber={selectedNumber}
+            setSelectedNumber={setSelectedNumber}
+            updateBoard={updateBoard}
+          />
+        )}
+      </div>
 
-        <div className="w-full mt-6 flex flex-col gap-4">
-          <div className="flex gap-1 justify-center">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-              <NumberButton
-                key={num}
-                number={num}
-                selected={selectedNumber === num}
-                onClick={() => setSelectedNumber(selectedNumber === num ? null : num)}
-              />
-            ))}
-          </div>
+      <div className="w-full max-w-md mt-6 flex flex-col gap-4">
+        <div className="flex gap-1 justify-center">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+            <NumberButton
+              key={num}
+              number={num}
+              selected={selectedNumber === num}
+              onClick={() => setSelectedNumber(selectedNumber === num ? null : num)}
+            />
+          ))}
+        </div>
 
-          <div className="flex gap-1 justify-center">
-            <ActionButton 
-              icon={Undo2} 
-              selected={selectedAction === 'undo'}
-              onClick={() => setSelectedAction(selectedAction === 'undo' ? null : 'undo')} 
-            />
-            <ActionButton 
-              icon={Eraser} 
-              selected={selectedAction === 'erase'}
-              onClick={() => setSelectedAction(selectedAction === 'erase' ? null : 'erase')} 
-            />
-            <ActionButton 
-              icon={PenLine} 
-              selected={selectedAction === 'notes'}
-              onClick={() => setSelectedAction(selectedAction === 'notes' ? null : 'notes')} 
-            />
-            <ActionButton 
-              icon={Lightbulb} 
-              selected={selectedAction === 'hint'}
-              onClick={() => setSelectedAction(selectedAction === 'hint' ? null : 'hint')} 
-            />
-          </div>
+        <div className="flex gap-1 justify-center">
+          <ActionButton
+            icon={Undo2}
+            selected={selectedAction === 'undo'}
+            onClick={() => setSelectedAction(selectedAction === 'undo' ? null : 'undo')}
+          />
+          <ActionButton
+            icon={Eraser}
+            selected={selectedAction === 'erase'}
+            onClick={() => setSelectedAction(selectedAction === 'erase' ? null : 'erase')}
+          />
+          <ActionButton
+            icon={PenLine}
+            selected={selectedAction === 'notes'}
+            onClick={() => setSelectedAction(selectedAction === 'notes' ? null : 'notes')}
+          />
+          <ActionButton
+            icon={Lightbulb}
+            selected={selectedAction === 'hint'}
+            onClick={() => setSelectedAction(selectedAction === 'hint' ? null : 'hint')}
+          />
         </div>
       </div>
+
+      {isSolved && <VictoryScreen onNewGame={handleNewGame} time={time} />}
     </div>
   );
 };
