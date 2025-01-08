@@ -49,6 +49,13 @@ const GameScreen = () => {
   const [isSolved, setIsSolved] = useState(false);
   const { time, resetTimer } = useTimer(true);
 
+  const [isNotesMode, setIsNotesMode] = useState(false);
+  const [notes, setNotes] = useState<number[][][]>(
+    Array(9).fill(null).map(() => 
+      Array(9).fill(null).map(() => [])
+    )
+  );
+
   useEffect(() => {
     const { puzzle, solution } = generateNewPuzzle(20);
     setInitialPuzzle(puzzle);
@@ -77,11 +84,33 @@ const GameScreen = () => {
   //   );
   // }, [currentPuzzle, solution]);
 
+  const updateNotes = (rowIndex: number, colIndex: number, number: number) => {
+    const updatedNotes = notes.map(row => row.map(cell => [...cell]));
+    const cellNotes = updatedNotes[rowIndex][colIndex];
+    
+    if (cellNotes.includes(number)) {
+      updatedNotes[rowIndex][colIndex] = cellNotes.filter(n => n !== number);
+    } else {
+      updatedNotes[rowIndex][colIndex] = [...cellNotes, number].sort((a, b) => a - b);
+    }
+    
+    setNotes(updatedNotes);
+  };
+
   const updateBoard = (rowIndex: number, colIndex: number, number: number) => {
     if (!currentPuzzle || !initialPuzzle) return;
 
     const updatedPuzzle = currentPuzzle.map(row => [...row]);
-    updatedPuzzle[rowIndex][colIndex] = number;
+    if (updatedPuzzle[rowIndex][colIndex] === number) {
+      updatedPuzzle[rowIndex][colIndex] = undefined;
+    } else {
+      updatedPuzzle[rowIndex][colIndex] = number;
+      if (number !== undefined) {
+        const updatedNotes = notes.map(row => row.map(cell => [...cell]));
+        updatedNotes[rowIndex][colIndex] = [];
+        setNotes(updatedNotes);
+      }
+    }
     setCurrentPuzzle(updatedPuzzle);
 
     const isBoardFull = updatedPuzzle.every(row => 
@@ -119,6 +148,9 @@ const GameScreen = () => {
             selectedNumber={selectedNumber}
             setSelectedNumber={setSelectedNumber}
             updateBoard={updateBoard}
+            isNotesMode={isNotesMode}
+            notes={notes}
+            updateNotes={updateNotes}
           />
         )}
       </div>
@@ -148,8 +180,8 @@ const GameScreen = () => {
           />
           <ActionButton
             icon={PenLine}
-            selected={selectedAction === 'notes'}
-            onClick={() => setSelectedAction(selectedAction === 'notes' ? null : 'notes')}
+            selected={isNotesMode}
+            onClick={() => setIsNotesMode(!isNotesMode)}
           />
           <ActionButton
             icon={Lightbulb}

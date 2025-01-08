@@ -1,5 +1,6 @@
 // SudokuCell.tsx
 import React from 'react';
+import NotesCell from './NotesCell';
 
 interface SudokuCellProps {
   highlighted: boolean;
@@ -7,14 +8,23 @@ interface SudokuCellProps {
   onClick: () => void;
   editable: boolean;
   value?: number;
+  notes: number[];
   isConflicted?: boolean;
 }
 
-const SudokuCell = ({ highlighted, selected, onClick, editable, value, isConflicted }: SudokuCellProps) => {
+const SudokuCell = ({ 
+  highlighted, 
+  selected, 
+  onClick, 
+  editable, 
+  value, 
+  notes,
+  isConflicted 
+}: SudokuCellProps) => {
   return (
     <div 
       onClick={onClick}
-      className={`w-full h-full flex items-center justify-center text-lg font-medium transition-all duration-150 cursor-pointer
+      className={`w-full h-full flex items-center justify-center transition-all duration-150 cursor-pointer
         ${highlighted ? 'bg-blue-50' : 'bg-white'}
         ${selected ? 'bg-blue-100 ring-2 ring-blue-500 ring-inset' : ''}
         ${isConflicted ? 'text-red-500 bg-red-50' : value ? editable ? 'text-blue-700' : 'text-gray-700' : ''}
@@ -27,13 +37,15 @@ const SudokuCell = ({ highlighted, selected, onClick, editable, value, isConflic
         minWidth: '40px',
         maxHeight: '60px',
         maxWidth: '60px',
-        fontSize: '1.5rem',
-        textAlign: 'center'
       }}
     >
-      <span className="text-center text-xl font-medium">
-        {value || ''}
-      </span>
+      {value ? (
+        <span className="text-center text-xl font-medium">
+          {value}
+        </span>
+      ) : notes.length > 0 ? (
+        <NotesCell notes={notes} />
+      ) : null}
     </div>
   );
 };

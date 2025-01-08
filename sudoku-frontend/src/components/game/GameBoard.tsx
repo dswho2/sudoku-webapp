@@ -8,6 +8,10 @@ interface GameBoardProps {
   selectedNumber: number | null;
   setSelectedNumber: React.Dispatch<React.SetStateAction<number | null>>;
   updateBoard: (rowIndex: number, colIndex: number, number: number) => void;
+  
+  isNotesMode: boolean;
+  notes: number[][][];
+  updateNotes: (rowIndex: number, colIndex: number, number: number) => void;
 }
 
 const GameBoard = ({
@@ -16,6 +20,9 @@ const GameBoard = ({
   selectedNumber,
   setSelectedNumber,
   updateBoard,
+  isNotesMode,
+  notes,
+  updateNotes,
 }: GameBoardProps) => {
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
   const [highlightedNumber, setHighlightedNumber] = useState<number | null>(null);
@@ -58,13 +65,13 @@ const GameBoard = ({
 
   const handleNumberPlacement = useCallback((row: number, col: number, number: number) => {
     if (initialPuzzle[row][col] === undefined) {
-      if (currentPuzzle[row][col] === number) {
-        updateBoard(row, col, number); // This will clear the number
+      if (isNotesMode) {
+        updateNotes(row, col, number);
       } else {
         updateBoard(row, col, number);
       }
     }
-  }, [currentPuzzle, initialPuzzle, updateBoard]);
+  }, [initialPuzzle, updateBoard, isNotesMode, updateNotes]);
 
   const isConflicted = (row: number, col: number): boolean => {
     const value = currentPuzzle[row][col];
@@ -145,6 +152,7 @@ const GameBoard = ({
                 selected={selectedCell?.row === rowIndex && selectedCell?.col === colIndex}
                 isConflicted={isConflicted(rowIndex, colIndex)}
                 onClick={() => handleCellClick(rowIndex, colIndex)}
+                notes={notes[rowIndex][colIndex]}
               />
             </div>
           ))

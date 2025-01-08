@@ -12,17 +12,17 @@ const HomePage = ({ onStartGame }: HomePageProps) => {
       <div className="flex flex-col space-y-4 w-32">
         <button 
           onClick={onStartGame}
-          className="w-full py-2 text-center bg-dark-blue border border-black hover:bg-gray-600"
+          className="w-full py-2 text-center bg-blue-600 border border-black hover:bg-gray-600"
         >
           New Game
         </button>
         <button 
-          className="w-full py-2 text-center bg-dark-blue border border-black hover:bg-gray-600"
+          className="w-full py-2 text-center bg-blue-600 border border-black hover:bg-gray-600"
         >
           Stats
         </button>
         <button 
-          className="w-full py-2 text-center bg-dark-blue border border-black hover:bg-gray-600"
+          className="w-full py-2 text-center bg-blue-600 border border-black hover:bg-gray-600"
         >
           Log In
         </button>
