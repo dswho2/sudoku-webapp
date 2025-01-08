@@ -24,7 +24,7 @@ const SudokuCell = ({
   return (
     <div 
       onClick={onClick}
-      className={`w-full h-full flex items-center justify-center transition-all duration-150 cursor-pointer
+      className={`w-full h-full flex items-center justify-center transition-all duration-150 cursor-pointer aspect-square
         ${highlighted ? 'bg-blue-50' : 'bg-white'}
         ${selected ? 'bg-blue-100 ring-2 ring-blue-500 ring-inset' : ''}
         ${isConflicted ? 'text-red-500 bg-red-50' : value ? editable ? 'text-blue-700' : 'text-gray-700' : ''}
