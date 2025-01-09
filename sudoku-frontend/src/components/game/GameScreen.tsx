@@ -8,6 +8,7 @@ import VictoryScreen from './VictoryScreen';
 import Menu from './Menu';
 import useTimer from '../../hooks/useTimer';
 import { generateSudoku } from '../utils/generateSudoku';
+import {updateNotesAfterMove, autofillNotes} from '../utils/generateNotes'
 
 const generateNewPuzzle = (clues: number = 20) => {
   // testing victory screen
@@ -74,6 +75,11 @@ const GameScreen = () => {
     resetTimer();
   }, [resetTimer]);
 
+  const handleAutofillNotes = () => {
+    if (!currentPuzzle) return;
+    setNotes(autofillNotes(currentPuzzle));
+  };
+
   // const isPuzzleSolved = useMemo(() => {
   //   if (!currentPuzzle || !solution) return false;
     
@@ -106,7 +112,7 @@ const GameScreen = () => {
     } else {
       updatedPuzzle[rowIndex][colIndex] = number;
       if (number !== undefined) {
-        const updatedNotes = notes.map(row => row.map(cell => [...cell]));
+        const updatedNotes = updateNotesAfterMove(notes, updatedPuzzle, rowIndex, colIndex, number);
         updatedNotes[rowIndex][colIndex] = [];
         setNotes(updatedNotes);
       }
@@ -136,7 +142,7 @@ const GameScreen = () => {
           <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <MenuIcon size={24} />
           </button>
-          <Menu isOpen={isMenuOpen} onNewGame={handleNewGame} />
+          <Menu isOpen={isMenuOpen} onNewGame={handleNewGame} onAutofillNotes={handleAutofillNotes} />
         </div>
       </div>
       <div className="w-full max-w-md flex flex-col items-center">

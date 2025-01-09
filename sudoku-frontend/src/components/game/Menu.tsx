@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 interface MenuProps {
   isOpen: boolean;
   onNewGame: () => void;
+  onAutofillNotes: () => void;
 }
 
-const Menu = ({ isOpen, onNewGame }: MenuProps) => {
+const Menu = ({ isOpen, onNewGame, onAutofillNotes }: MenuProps) => {
   const [isLightMode, setIsLightMode] = useState(false);
 
   const handleToggleLightMode = () => {
@@ -30,6 +31,12 @@ const Menu = ({ isOpen, onNewGame }: MenuProps) => {
         </button>
         <button className={`px-4 py-2 text-left hover:${isLightMode ? 'bg-gray-100' : 'bg-gray-700'} ${isLightMode ? 'text-black' : 'text-white'}`}>
           Log In
+        </button>
+        <button 
+          onClick={onAutofillNotes}
+          className={`px-4 py-2 text-left hover:${isLightMode ? 'bg-gray-100' : 'bg-gray-700'} ${isLightMode ? 'text-black' : 'text-white'}`}
+        >
+          Autofill Notes
         </button>
         <button 
           onClick={handleToggleLightMode}

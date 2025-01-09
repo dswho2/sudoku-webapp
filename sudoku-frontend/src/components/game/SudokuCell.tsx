@@ -3,49 +3,45 @@ import React from 'react';
 import NotesCell from './NotesCell';
 
 interface SudokuCellProps {
+  value: number | undefined;
+  editable: boolean;
   highlighted: boolean;
   selected: boolean;
+  isConflicted: boolean;
   onClick: () => void;
-  editable: boolean;
-  value?: number;
   notes: number[];
-  isConflicted?: boolean;
+  highlightedNumber: number | null;
 }
 
-const SudokuCell = ({ 
-  highlighted, 
-  selected, 
-  onClick, 
-  editable, 
-  value, 
+const SudokuCell = ({
+  value,
+  editable,
+  highlighted,
+  selected,
+  isConflicted,
+  onClick,
   notes,
-  isConflicted 
+  highlightedNumber,
 }: SudokuCellProps) => {
   return (
-    <div 
-      onClick={onClick}
-      className={`w-full h-full flex items-center justify-center transition-all duration-150 cursor-pointer aspect-square
+    <div
+      className={`
+        w-full h-full
+        flex items-center justify-center
+        cursor-pointer aspect-square
         ${highlighted ? 'bg-blue-50' : 'bg-white'}
         ${selected ? 'bg-blue-100 ring-2 ring-blue-500 ring-inset' : ''}
-        ${isConflicted ? 'text-red-500 bg-red-50' : value ? editable ? 'text-blue-700' : 'text-gray-700' : ''}
-        hover:bg-blue-50
+        ${isConflicted ? 'text-red-500' : editable ? 'text-blue-600' : 'text-gray-900'}
       `}
-      style={{ 
-        height: '100%', 
-        width: '100%', 
-        minHeight: '40px',
-        minWidth: '40px',
-        maxHeight: '60px',
-        maxWidth: '60px',
-      }}
+      onClick={onClick}
     >
       {value ? (
-        <span className="text-center text-xl font-medium">
+        <span className={`text-lg font-medium ${value === highlightedNumber ? 'text-blue-600' : ''}`}>
           {value}
         </span>
-      ) : notes.length > 0 ? (
-        <NotesCell notes={notes} />
-      ) : null}
+      ) : (
+        <NotesCell notes={notes} highlightedNumber={highlightedNumber} />
+      )}
     </div>
   );
 };

@@ -69,6 +69,7 @@ const GameBoard = ({
         updateNotes(row, col, number);
       } else {
         updateBoard(row, col, number);
+        setHighlightedNumber(number);
       }
     }
   }, [initialPuzzle, updateBoard, isNotesMode, updateNotes]);
@@ -153,6 +154,7 @@ const GameBoard = ({
                 isConflicted={isConflicted(rowIndex, colIndex)}
                 onClick={() => handleCellClick(rowIndex, colIndex)}
                 notes={notes[rowIndex][colIndex]}
+                highlightedNumber={highlightedNumber} // Add this prop
               />
             </div>
           ))
