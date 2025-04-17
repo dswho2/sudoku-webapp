@@ -1,3 +1,5 @@
+// src/components/game/VictoryScreen.tsx
+
 import React from 'react';
 
 interface VictoryScreenProps {

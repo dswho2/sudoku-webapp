@@ -1,4 +1,5 @@
-// GameScreen.tsx
+// src/components/game/GameScreen.tsx
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Menu as MenuIcon, Undo2, Eraser, PenLine, Lightbulb } from 'lucide-react';
 import GameBoard from './GameBoard';
@@ -48,7 +49,7 @@ const GameScreen = () => {
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [isSolved, setIsSolved] = useState(false);
-  const { time, resetTimer } = useTimer(true);
+  const { time, resetTimer, stopTimer } = useTimer(true);
 
   const [isNotesMode, setIsNotesMode] = useState(false);
   const [notes, setNotes] = useState<number[][][]>(
@@ -129,6 +130,9 @@ const GameScreen = () => {
           cell === solution?.[rowIndex][colIndex]
         )
       );
+      if (isCorrect) {
+        stopTimer();
+      }
       setIsSolved(isCorrect);
     }
   };

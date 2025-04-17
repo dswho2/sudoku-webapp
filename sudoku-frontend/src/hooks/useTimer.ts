@@ -1,19 +1,22 @@
-// hooks/useTimer.ts
-import { useState, useEffect } from 'react';
+// src/hooks/useTimer.ts
 
-const useTimer = (isRunning: boolean = true) => {
+import { useState, useEffect, useRef } from 'react';
+
+const useTimer = (startRunning: boolean = true) => {
   const [seconds, setSeconds] = useState(0);
+  const [isRunning, setIsRunning] = useState(startRunning);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
     if (isRunning) {
-      interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         setSeconds(s => s + 1);
       }, 1000);
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [isRunning]);
 
   const formatTime = () => {
@@ -24,9 +27,18 @@ const useTimer = (isRunning: boolean = true) => {
 
   const resetTimer = () => {
     setSeconds(0);
+    setIsRunning(true); // restart timer
   };
 
-  return { time: formatTime(), seconds, resetTimer};
+  const stopTimer = () => {
+    setIsRunning(false);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  return { time: formatTime(), seconds, stopTimer, resetTimer };
 };
 
 export default useTimer;
