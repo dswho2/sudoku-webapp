@@ -1,5 +1,7 @@
 # sudoku-backend/app/__init__.py
 
+from flask_cors import CORS
+
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -8,6 +10,9 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
+CORS(app)
+
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
@@ -61,14 +66,14 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({"msg": "Invalid credentials"}), 401
 
-    token = create_access_token(identity=user.id)
+    token = create_access_token(identity=str(user.id))
     return jsonify({"access_token": token, "id": user.id}), 200
 
 @app.route('/protected', methods=['GET'])
 @jwt_required()
 def protected():
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    current_user_id = int(get_jwt_identity())
+    user = db.session.get(User, current_user_id)
     return jsonify({"msg": f"Hello {user.username}", "id": user.id}), 200
 
 # Init

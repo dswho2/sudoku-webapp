@@ -5,7 +5,16 @@ Webapp to play sudoku.
 
 Created with React and Typescript with Tailwind CSS for the frontend. Flask and PostgreSQL for the backend. Will add user authentication, storing data such as scores and puzzles solved. Vercel for hosting the frontend.
 
-
+### Frontend
+```
+cd sudoku-frontend
+npm start
+```
+### Backend
+```
+cd sudoku-backend
+python app/__init__.py
+```
 
 
 ## features to add

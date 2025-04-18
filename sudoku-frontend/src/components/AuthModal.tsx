@@ -14,24 +14,35 @@ const AuthModal = () => {
   const [error, setError] = useState('');
   const [closing, setClosing] = useState(false);
 
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
+    setLoading(true);
+  
     try {
       const data = isLogin
         ? await loginUser(username, password)
         : await registerUser(username, password);
-
-      if (data.access_token) {
+  
+      console.log("Login/Register response:", data);
+  
+      if (data.access_token && typeof data.access_token === 'string') {
         const profile = await getUserProfile(data.access_token);
         login(data.access_token, profile.id);
-        handleClose();
+        setLoginSuccess(true);
+        setTimeout(() => {
+          handleClose();
+        }, 1000);
       } else {
-        setError(data.msg || 'Something went wrong');
+        setError(data.msg || 'Login failed');
       }
     } catch (err) {
       setError('Server error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,7 +50,7 @@ const AuthModal = () => {
     setClosing(true);
     setTimeout(() => {
       closeModal();
-    }, 300); // match duration-300
+    }, 300);
   };
 
   return (
@@ -59,33 +70,39 @@ const AuthModal = () => {
 
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
+        {loginSuccess && (
+          <div className="mb-4 text-green-400 text-center text-lg">
+            Welcome, {username}!
+          </div>
+        )}
         <div className="mb-4">
           <label className="block text-sm mb-1">Username</label>
           <input
             type="text"
             value={username}
             onChange={e => setUsername(e.target.value)}
-            className="w-full border border-gray-600 bg-zinc-800 text-white rounded px-3 py-2"
+            className="w-full border border-gray-600 bg-zinc-800 text-white rounded px-3 py-2 disabled:opacity-50"
+            disabled={loading || loginSuccess}
             required
           />
         </div>
-
         <div className="mb-6">
           <label className="block text-sm mb-1">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            className="w-full border border-gray-600 bg-zinc-800 text-white rounded px-3 py-2"
-            required
-          />
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full border border-gray-600 bg-zinc-800 text-white rounded px-3 py-2 disabled:opacity-50"
+              disabled={loading || loginSuccess}
+              required
+            />
         </div>
-
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-500"
+          disabled={loading || loginSuccess}
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLogin ? 'Log In' : 'Sign Up'}
+          {loading ? 'Loading...' : isLogin ? 'Log In' : 'Sign Up'}
         </button>
 
         <div className="mt-4 text-center">
