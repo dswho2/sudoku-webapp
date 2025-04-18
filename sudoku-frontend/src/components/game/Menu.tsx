@@ -1,51 +1,77 @@
-// components/game/Menu.tsx
-import React, { useState } from 'react';
+// src/components/game/Menu.tsx
+import React from 'react';
+import { X } from 'lucide-react';
+import { useModal } from '../../context/ModalContext';
 
 interface MenuProps {
   isOpen: boolean;
   onNewGame: () => void;
   onAutofillNotes: () => void;
+  onClose: () => void;
 }
 
-const Menu = ({ isOpen, onNewGame, onAutofillNotes }: MenuProps) => {
-  const [isLightMode, setIsLightMode] = useState(false);
-
-  const handleToggleLightMode = () => {
-    setIsLightMode(!isLightMode);
-    document.documentElement.classList.toggle('Light', !isLightMode); // Toggle Light mode on <html>
-  };
-
-  if (!isOpen) return null;
+const Menu = ({ isOpen, onNewGame, onAutofillNotes, onClose }: MenuProps) => {
+  const { openModal } = useModal();
 
   return (
-    <div className={`absolute right-0 top-12 z-50 ${isLightMode ? 'bg-white' : 'bg-dark-blue'} shadow-lg border ${isLightMode ? 'border-gray-100' : 'border-gray-700'}`}>
-      <div className="flex flex-col">
-        <button 
-          onClick={onNewGame}
-          className={`px-4 py-2 text-left hover:${isLightMode ? 'bg-gray-100' : 'bg-gray-700'} ${isLightMode ? 'text-black' : 'text-white'}`}
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black bg-opacity-30 backdrop-blur-sm"
+          onClick={onClose}
+        />
+      )}
+
+      <div
+        className={`
+          fixed top-0 right-0 h-full w-64 bg-zinc-900 text-white shadow-lg p-6 z-50
+          transition-transform duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+        `}
+      >
+        <button
+          className="absolute top-4 right-4 text-white hover:text-red-400"
+          onClick={onClose}
         >
-          New Game
+          <X />
         </button>
-        <button className={`px-4 py-2 text-left hover:${isLightMode ? 'bg-gray-100' : 'bg-gray-700'} ${isLightMode ? 'text-black' : 'text-white'}`}>
-          Stats
-        </button>
-        <button className={`px-4 py-2 text-left hover:${isLightMode ? 'bg-gray-100' : 'bg-gray-700'} ${isLightMode ? 'text-black' : 'text-white'}`}>
-          Log In
-        </button>
-        <button 
-          onClick={onAutofillNotes}
-          className={`px-4 py-2 text-left hover:${isLightMode ? 'bg-gray-100' : 'bg-gray-700'} ${isLightMode ? 'text-black' : 'text-white'}`}
-        >
-          Autofill Notes
-        </button>
-        <button 
-          onClick={handleToggleLightMode}
-          className={`px-4 py-2 text-left hover:${isLightMode ? 'bg-gray-100' : 'bg-gray-700'} ${isLightMode ? 'text-black' : 'text-white'}`}
-        >
-          {isLightMode ? 'Dark Mode' : 'Light Mode'}
-        </button>
+
+        <div className="flex flex-col gap-4 mt-12">
+          <button
+            onClick={() => {
+              onNewGame();
+              onClose();
+            }}
+            className="text-left w-full px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded"
+          >
+            New Game
+          </button>
+          <button
+            className="text-left w-full px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded"
+          >
+            Stats
+          </button>
+          <button
+            onClick={() => {
+              onAutofillNotes();
+              onClose();
+            }}
+            className="text-left w-full px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded"
+          >
+            Autofill Notes
+          </button>
+          <button
+            onClick={() => {
+              openModal('auth');
+              onClose();
+            }}
+            className="text-left w-full px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded"
+          >
+            Log In
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

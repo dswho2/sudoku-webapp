@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Menu as MenuIcon, Undo2, Eraser, PenLine, Lightbulb } from 'lucide-react';
+import { X } from 'lucide-react';
 import GameBoard from './GameBoard';
 import NumberButton from './NumberButton';
 import ActionButton from './ActionButton';
@@ -10,6 +11,8 @@ import Menu from './Menu';
 import useTimer from '../../hooks/useTimer';
 import { generateSudoku } from '../utils/generateSudoku';
 import {updateNotesAfterMove, autofillNotes} from '../utils/generateNotes'
+
+import { useModal } from '../../context/ModalContext';
 
 const generateNewPuzzle = (clues: number = 20) => {
   // testing victory screen
@@ -49,7 +52,9 @@ const GameScreen = () => {
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [isSolved, setIsSolved] = useState(false);
-  const { time, resetTimer, stopTimer } = useTimer(true);
+
+  const { modal } = useModal();
+  const { time, resetTimer, stopTimer, setIsRunning } = useTimer(true);
 
   const [isNotesMode, setIsNotesMode] = useState(false);
   const [notes, setNotes] = useState<number[][][]>(
@@ -57,6 +62,10 @@ const GameScreen = () => {
       Array(9).fill(null).map(() => [])
     )
   );
+
+  useEffect(() => {
+    setIsRunning(!isMenuOpen && modal !== 'auth');
+  }, [isMenuOpen, modal, setIsRunning]);
 
   useEffect(() => {
     const { puzzle, solution } = generateNewPuzzle(20);
@@ -141,12 +150,13 @@ const GameScreen = () => {
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md flex justify-between items-center py-4">
         <h1 className="text-3xl font-semibold">Sudoku</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative">
           <span className="text-xl">{time}</span>
           <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <MenuIcon size={24} />
+            <span className={`w-6 h-6 inline-block transition-transform duration-300 ${isMenuOpen ? 'rotate-90' : 'rotate-0'}`}>
+              {isMenuOpen ? <X /> : <MenuIcon />}
+            </span>
           </button>
-          <Menu isOpen={isMenuOpen} onNewGame={handleNewGame} onAutofillNotes={handleAutofillNotes} />
         </div>
       </div>
       <div className="w-full max-w-md flex flex-col items-center">
@@ -202,6 +212,13 @@ const GameScreen = () => {
       </div>
 
       {isSolved && <VictoryScreen onNewGame={handleNewGame} time={time} />}
+
+      <Menu
+        isOpen={isMenuOpen}
+        onNewGame={handleNewGame}
+        onAutofillNotes={handleAutofillNotes}
+        onClose={() => setIsMenuOpen(false)}
+      />
     </div>
   );
 };

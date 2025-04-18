@@ -38,7 +38,7 @@ const useTimer = (startRunning: boolean = true) => {
     }
   };
 
-  return { time: formatTime(), seconds, stopTimer, resetTimer };
+  return { time: formatTime(), seconds, stopTimer, resetTimer, setIsRunning };
 };
 
 export default useTimer;
