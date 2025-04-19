@@ -15,7 +15,7 @@ app.config.from_object(Config)
 CORS(app, resources={r"/*": {"origins": [
     "http://localhost:3000",
     "https://sudoku-webapp.vercel.app"
-]}})
+]}}, supports_credentials=True, automatic_options=True)
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -86,6 +86,10 @@ def protected():
     user = db.session.get(User, current_user_id)
     return jsonify({"msg": f"Hello {user.username}", "id": user.id}), 200
 
+@app.route("/")
+def index():
+    return "Sudoku Backend API is running."
+
 # Register blueprint with prefix
 app.register_blueprint(api)
 
@@ -95,3 +99,4 @@ def init_app():
     print("DB:", app.config['SQLALCHEMY_DATABASE_URI'])
     with app.app_context():
         db.create_all()
+
