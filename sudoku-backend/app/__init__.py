@@ -10,6 +10,8 @@ from datetime import datetime
 import os
 from .config import Config
 
+from flask import Blueprint
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -28,6 +30,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
+
+api = Blueprint('api', __name__)
 
 # User Model
 class User(db.Model):
@@ -81,6 +85,8 @@ def protected():
     current_user_id = int(get_jwt_identity())
     user = db.session.get(User, current_user_id)
     return jsonify({"msg": f"Hello {user.username}", "id": user.id}), 200
+
+app.register_blueprint(api, url_prefix="/api")
 
 # Only used when running locally
 def init_app():
