@@ -24,6 +24,13 @@ jwt = JWTManager(app)
 # Blueprint for all routes
 api = Blueprint('api', __name__)
 
+# for vercel sqlite (non persistent db)
+def ensure_db_initialized():
+    if not hasattr(app, "_db_initialized"):
+        with app.app_context():
+            db.create_all()
+        app._db_initialized = True
+
 # User Model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -39,6 +46,7 @@ class User(db.Model):
 
 @api.route('/register', methods=['POST'])
 def register():
+    ensure_db_initialized()
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -58,6 +66,7 @@ def register():
 
 @api.route('/login', methods=['POST'])
 def login():
+    ensure_db_initialized()
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -72,6 +81,7 @@ def login():
 @api.route('/protected', methods=['GET'])
 @jwt_required()
 def protected():
+    ensure_db_initialized()
     current_user_id = int(get_jwt_identity())
     user = db.session.get(User, current_user_id)
     return jsonify({"msg": f"Hello {user.username}", "id": user.id}), 200

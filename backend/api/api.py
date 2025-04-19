@@ -2,5 +2,5 @@
 
 from app import app
 
-def handler(request):
-    return app(request)
+# Vercel automatically handles WSGI entrypoint
+app = app
