@@ -1,36 +1,27 @@
 # sudoku-backend/app/__init__.py
 
-from flask_cors import CORS
-
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Blueprint
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from datetime import datetime
 import os
 from .config import Config
 
-from flask import Blueprint
-
 app = Flask(__name__)
 app.config.from_object(Config)
 
 CORS(app, resources={r"/*": {"origins": [
-    "http://localhost:3000",  # for local dev
-    "https://sudoku-webapp.vercel.app"  # for prod
+    "http://localhost:3000",
+    "https://sudoku-webapp.vercel.app"
 ]}})
-
-# Configuration
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is required")
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
+# Blueprint for all routes
 api = Blueprint('api', __name__)
 
 # User Model
@@ -46,8 +37,7 @@ class User(db.Model):
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
 
-# Routes
-@app.route('/register', methods=['POST'])
+@api.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
     username = data.get('username')
@@ -66,7 +56,7 @@ def register():
 
     return jsonify({"msg": "User created successfully"}), 201
 
-@app.route('/login', methods=['POST'])
+@api.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data.get('username')
@@ -79,20 +69,19 @@ def login():
     token = create_access_token(identity=str(user.id))
     return jsonify({"access_token": token, "id": user.id}), 200
 
-@app.route('/protected', methods=['GET'])
+@api.route('/protected', methods=['GET'])
 @jwt_required()
 def protected():
     current_user_id = int(get_jwt_identity())
     user = db.session.get(User, current_user_id)
     return jsonify({"msg": f"Hello {user.username}", "id": user.id}), 200
 
+# Register blueprint with prefix
 app.register_blueprint(api, url_prefix="/api")
 
-# Only used when running locally
+# Local-only DB setup
 def init_app():
-    # Ensure instance folder exists
     os.makedirs('instance', exist_ok=True)
-
     print("DB:", app.config['SQLALCHEMY_DATABASE_URI'])
     with app.app_context():
         db.create_all()
