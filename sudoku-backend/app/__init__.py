@@ -10,12 +10,18 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-CORS(app)
-
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+CORS(app, resources={r"/*": {"origins": [
+    "http://localhost:5173",  # for local dev
+    "https://sudoku-webapp.vercel.app"  # for prod
+]}})
 
 # Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable not set")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "super-secret")
 
@@ -76,8 +82,7 @@ def protected():
     user = db.session.get(User, current_user_id)
     return jsonify({"msg": f"Hello {user.username}", "id": user.id}), 200
 
-# Init
-if __name__ == '__main__':
+# Only used when running locally
+def init_app():
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
