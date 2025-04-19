@@ -77,7 +77,7 @@ def protected():
     return jsonify({"msg": f"Hello {user.username}", "id": user.id}), 200
 
 # Register blueprint with prefix
-app.register_blueprint(api, url_prefix="/api")
+app.register_blueprint(api)
 
 # Local-only DB setup
 def init_app():
