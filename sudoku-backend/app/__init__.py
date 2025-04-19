@@ -8,22 +8,22 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from datetime import datetime
 import os
+from .config import Config
 
 app = Flask(__name__)
+app.config.from_object(Config)
+
 CORS(app, resources={r"/*": {"origins": [
-    "http://localhost:5173",  # for local dev
+    "http://localhost:3000",  # for local dev
     "https://sudoku-webapp.vercel.app"  # for prod
 ]}})
 
 # Configuration
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable not set")
-
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+    raise ValueError("DATABASE_URL is required")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY", "super-secret")
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -84,5 +84,9 @@ def protected():
 
 # Only used when running locally
 def init_app():
+    # Ensure instance folder exists
+    os.makedirs('instance', exist_ok=True)
+
+    print("DB:", app.config['SQLALCHEMY_DATABASE_URI'])
     with app.app_context():
         db.create_all()
