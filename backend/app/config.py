@@ -1,4 +1,4 @@
-# api/app/config.py
+# backend/app/config.py
 
 import os
 

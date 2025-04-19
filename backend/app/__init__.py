@@ -1,4 +1,4 @@
-# api/app/__init__.py
+# backend/app/__init__.py
 
 from flask import Flask, request, jsonify, Blueprint
 from flask_sqlalchemy import SQLAlchemy
