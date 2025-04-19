@@ -16,3 +16,4 @@ migrations/
 
 # Ignore Flask run log files (if any)
 *.log
+.vercel
