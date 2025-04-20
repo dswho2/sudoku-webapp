@@ -40,3 +40,16 @@ export const getUserProfile = async (token: string) => {
     
     return res.json();
 };
+
+export const getStats = async (token: string) => {
+  const res = await fetch(`${API}/get_stats`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    }
+  });
+
+  if (!res.ok) throw new Error('Failed to get stats');
+  return res.json();
+};

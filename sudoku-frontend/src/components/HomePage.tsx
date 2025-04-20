@@ -22,7 +22,10 @@ const HomePage = ({ onStartGame }: HomePageProps) => {
         <button onClick={onStartGame} className="w-full py-2 text-center bg-blue-600 border border-black hover:bg-gray-600">
           New Game
         </button>
-        <button className="w-full py-2 text-center bg-blue-600 border border-black hover:bg-gray-600">
+        <button
+          onClick={() => openModal('stats')}
+          className="w-full py-2 text-center bg-blue-600 border border-black hover:bg-gray-600"
+        >
           Stats
         </button>
         {token ? (

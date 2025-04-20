@@ -6,6 +6,7 @@ import HomePage from './components/HomePage';
 import GameScreen from './components/game/GameScreen';
 import { useModal } from './context/ModalContext';
 import AuthPage from './components/AuthModal';
+import StatsModal from './components/StatsModal';
 
 const AppRoutes = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const App = () => {
     <Router>
       <AppRoutes />
       {modal === 'auth' && <AuthPage />}
+      {modal === 'stats' && <StatsModal />}
     </Router>
   );
 };

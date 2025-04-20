@@ -59,6 +59,10 @@ const Menu = ({ isOpen, onNewGame, onAutofillNotes, onClose }: MenuProps) => {
             New Game
           </button>
           <button
+            onClick={() => {
+              openModal('stats');
+              onClose();
+            }}
             className="text-left w-full px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded"
           >
             Stats
