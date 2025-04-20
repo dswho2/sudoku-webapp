@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useModal } from '../context/ModalContext';
 import { useAuth } from '../context/AuthContext';
 import { getStats } from '../api/auth';
+import { formatTime } from './utils/formatTime';
 import { X } from 'lucide-react';
 
 const StatsModal = () => {
@@ -33,7 +34,7 @@ const StatsModal = () => {
           <div className="space-y-2 text-sm">
             <p><strong>Username:</strong> {stats.username}</p>
             <p><strong>Games Played:</strong> {stats.games_played}</p>
-            <p><strong>Fastest Time:</strong> {stats.fastest_time ?? 'N/A'}s</p>
+            <p>Fastest: {formatTime(stats.fastest_time)}</p>
             <p><strong>Average Time:</strong> {stats.average_time ?? 'N/A'}s</p>
           </div>
         ) : (

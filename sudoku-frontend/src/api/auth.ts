@@ -1,9 +1,6 @@
 // src/api/auth.ts
 
-// in vercel frontend env var settings for prod
-const API = process.env.REACT_APP_BACKEND_URL!;
-
-console.log('API URL:', process.env.REACT_APP_BACKEND_URL);
+import { API } from '../constants'
 
 export const loginUser = async (username: string, password: string) => {
     const res = await fetch(`${API}/login`, {
