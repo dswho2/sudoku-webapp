@@ -34,8 +34,8 @@ const StatsModal = () => {
           <div className="space-y-2 text-sm">
             <p><strong>Username:</strong> {stats.username}</p>
             <p><strong>Games Played:</strong> {stats.games_played}</p>
-            <p>Fastest: {formatTime(stats.fastest_time)}</p>
-            <p><strong>Average Time:</strong> {stats.average_time ?? 'N/A'}s</p>
+            <p><strong>Fastest</strong>: {formatTime(stats.fastest_time)}</p>
+            <p><strong>Average Time:</strong> {formatTime(stats.average_time) ?? 'N/A'}s</p>
           </div>
         ) : (
           <div className="text-center text-sm">

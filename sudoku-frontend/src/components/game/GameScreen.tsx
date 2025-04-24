@@ -64,7 +64,7 @@ const GameScreen = () => {
   );
 
   useEffect(() => {
-    setIsRunning(!isMenuOpen && modal !== 'auth');
+    setIsRunning(!isMenuOpen && modal !== 'auth' && modal !== 'stats');
   }, [isMenuOpen, modal, setIsRunning]);
 
   useEffect(() => {
