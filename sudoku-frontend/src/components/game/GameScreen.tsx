@@ -2,47 +2,24 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Menu as MenuIcon, Undo2, Eraser, PenLine, Lightbulb } from 'lucide-react';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import GameBoard from './GameBoard';
 import NumberButton from './NumberButton';
 import ActionButton from './ActionButton';
 import VictoryScreen from './VictoryScreen';
 import Menu from './Menu';
+import DifficultyModal from '../DifficultyModal';
 import useTimer from '../../hooks/useTimer';
-import { generateSudoku } from '../utils/generateSudoku';
-import {updateNotesAfterMove, autofillNotes} from '../utils/generateNotes'
-
+import { generateSudoku, Difficulty } from '../utils/generateSudoku';
+import { updateNotesAfterMove, autofillNotes } from '../utils/generateNotes';
 import { useModal } from '../../context/ModalContext';
 
-const generateNewPuzzle = (clues: number = 20) => {
-  // testing victory screen
-  // const puzzle = [
-  //   [1,2,3,4,undefined,6,7,8,9],
-  //   [4,5,6,7,8,9,1,2,3],
-  //   [7,8,9,1,2,3,4,5,6],
-  //   [2,1,4,3,6,5,8,9,7],
-  //   [3,6,5,8,9,7,2,1,4],
-  //   [8,9,7,2,1,4,3,6,5],
-  //   [5,3,1,6,4,2,9,7,8],
-  //   [6,4,2,9,7,8,5,3,1],
-  //   [9,7,8,5,3,1,6,4,2],
-  // ];
-  // const solution =  [
-  //   [1,2,3,4,5,6,7,8,9],
-  //   [4,5,6,7,8,9,1,2,3],
-  //   [7,8,9,1,2,3,4,5,6],
-  //   [2,1,4,3,6,5,8,9,7],
-  //   [3,6,5,8,9,7,2,1,4],
-  //   [8,9,7,2,1,4,3,6,5],
-  //   [5,3,1,6,4,2,9,7,8],
-  //   [6,4,2,9,7,8,5,3,1],
-  //   [9,7,8,5,3,1,6,4,2],
-  // ];
-  
-
-  const { puzzle, solution } = generateSudoku(clues);
+const generateNewPuzzle = (difficulty: Difficulty = 'medium') => {
+  const { puzzle, solution } = generateSudoku(difficulty);
   return { puzzle, solution };
 };
+
+const MIN_LOADING_TIME_MS = 700;
 
 const GameScreen = () => {
   const [initialPuzzle, setInitialPuzzle] = useState<(number | undefined)[][] | null>(null);
@@ -52,30 +29,54 @@ const GameScreen = () => {
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [isSolved, setIsSolved] = useState(false);
-
-  const { modal } = useModal();
+  const { modal, openModal } = useModal();
   const { time, resetTimer, stopTimer, setIsRunning } = useTimer(true);
-
+  const [loading, setLoading] = useState(true);
   const [isNotesMode, setIsNotesMode] = useState(false);
   const [notes, setNotes] = useState<number[][][]>(
-    Array(9).fill(null).map(() => 
-      Array(9).fill(null).map(() => [])
-    )
+    Array(9).fill(null).map(() => Array(9).fill(null).map(() => []))
   );
 
   useEffect(() => {
-    setIsRunning(!isMenuOpen && modal !== 'auth' && modal !== 'stats');
+    setIsRunning(!isMenuOpen && modal !== 'auth' && modal !== 'stats' && modal !== 'difficulty');
   }, [isMenuOpen, modal, setIsRunning]);
 
   useEffect(() => {
-    const { puzzle, solution } = generateNewPuzzle(20);
+    const { puzzle, solution } = generateNewPuzzle();
     setInitialPuzzle(puzzle);
     setCurrentPuzzle(puzzle.map(row => [...row]));
     setSolution(solution);
   }, []);
 
-  const handleNewGame = useCallback(() => {
-    const { puzzle, solution } = generateNewPuzzle(20);
+  useEffect(() => {
+    const startTime = Date.now();
+    const { puzzle, solution } = generateNewPuzzle();
+    setInitialPuzzle(puzzle);
+    setCurrentPuzzle(puzzle.map(row => [...row]));
+    setSolution(solution);
+  
+    const elapsed = Date.now() - startTime;
+    const timeout = setTimeout(() => setLoading(false), Math.max(0, MIN_LOADING_TIME_MS - elapsed));
+    return () => clearTimeout(timeout);
+  }, []);
+  
+  const AnimatedDots = () => {
+    const [dots, setDots] = useState('');
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setDots(prev => (prev.length < 3 ? prev + '.' : ''));
+      }, 200);
+      return () => clearInterval(interval);
+    }, []);
+
+    return <span className="text-lg font-medium">Loading{dots}</span>;
+  };
+
+  const handleNewGame = useCallback((difficulty: Difficulty = 'medium') => {
+    setLoading(true);
+    const startTime = Date.now();
+    const { puzzle, solution } = generateNewPuzzle(difficulty);
     setInitialPuzzle(puzzle);
     setCurrentPuzzle(puzzle.map(row => [...row]));
     setSolution(solution);
@@ -83,6 +84,10 @@ const GameScreen = () => {
     setSelectedAction(null);
     setIsSolved(false);
     resetTimer();
+  
+    const elapsed = Date.now() - startTime;
+    const timeout = setTimeout(() => setLoading(false), Math.max(0, MIN_LOADING_TIME_MS - elapsed));
+    return () => clearTimeout(timeout);
   }, [resetTimer]);
 
   const handleAutofillNotes = () => {
@@ -90,26 +95,14 @@ const GameScreen = () => {
     setNotes(autofillNotes(currentPuzzle));
   };
 
-  // const isPuzzleSolved = useMemo(() => {
-  //   if (!currentPuzzle || !solution) return false;
-    
-  //   return currentPuzzle.every((row, rowIndex) =>
-  //     row.every((cell, colIndex) => 
-  //       cell !== undefined && cell === solution[rowIndex][colIndex]
-  //     )
-  //   );
-  // }, [currentPuzzle, solution]);
-
   const updateNotes = (rowIndex: number, colIndex: number, number: number) => {
     const updatedNotes = notes.map(row => row.map(cell => [...cell]));
     const cellNotes = updatedNotes[rowIndex][colIndex];
-    
     if (cellNotes.includes(number)) {
       updatedNotes[rowIndex][colIndex] = cellNotes.filter(n => n !== number);
     } else {
       updatedNotes[rowIndex][colIndex] = [...cellNotes, number].sort((a, b) => a - b);
     }
-    
     setNotes(updatedNotes);
   };
 
@@ -135,9 +128,7 @@ const GameScreen = () => {
 
     if (isBoardFull) {
       const isCorrect = updatedPuzzle.every((row, rowIndex) =>
-        row.every((cell, colIndex) => 
-          cell === solution?.[rowIndex][colIndex]
-        )
+        row.every((cell, colIndex) => cell === solution?.[rowIndex][colIndex])
       );
       if (isCorrect) {
         stopTimer();
@@ -148,6 +139,7 @@ const GameScreen = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
+      {/* Header */}
       <div className="w-full max-w-md flex justify-between items-center py-4">
         <h1 className="text-3xl font-semibold">Sudoku</h1>
         <div className="flex items-center gap-2 relative">
@@ -159,25 +151,35 @@ const GameScreen = () => {
           </button>
         </div>
       </div>
+  
+      {/* Game Board Area with Loading Overlay */}
       <div className="w-full max-w-md flex flex-col items-center">
-        {!isSolved && initialPuzzle && currentPuzzle && (
-          <GameBoard
-            key={initialPuzzle.toString()}
-            initialPuzzle={initialPuzzle}
-            currentPuzzle={currentPuzzle}
-            selectedNumber={selectedNumber}
-            setSelectedNumber={setSelectedNumber}
-            updateBoard={updateBoard}
-            isNotesMode={isNotesMode}
-            notes={notes}
-            updateNotes={updateNotes}
-          />
-        )}
+        <div className="relative w-full aspect-square bg-gray-100 rounded-md shadow-md flex items-center justify-center">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center text-gray-700">
+              <Loader2 className="animate-spin h-6 w-6 mb-2" />
+              <AnimatedDots />
+            </div>
+          ) : (
+            <GameBoard
+              key={initialPuzzle?.toString()}
+              initialPuzzle={initialPuzzle!}
+              currentPuzzle={currentPuzzle!}
+              selectedNumber={selectedNumber}
+              setSelectedNumber={setSelectedNumber}
+              updateBoard={updateBoard}
+              isNotesMode={isNotesMode}
+              notes={notes}
+              updateNotes={updateNotes}
+            />
+          )}
+        </div>
       </div>
-
+  
+      {/* Buttons */}
       <div className="w-full max-w-md mt-6 flex flex-col gap-4">
         <div className="flex gap-1 justify-center">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
             <NumberButton
               key={num}
               number={num}
@@ -186,7 +188,7 @@ const GameScreen = () => {
             />
           ))}
         </div>
-
+  
         <div className="flex gap-1 justify-center">
           <ActionButton
             icon={Undo2}
@@ -210,17 +212,21 @@ const GameScreen = () => {
           />
         </div>
       </div>
-
+  
+      {/* Overlays and Modals */}
       {isSolved && <VictoryScreen onNewGame={handleNewGame} time={time} />}
-
+  
       <Menu
         isOpen={isMenuOpen}
-        onNewGame={handleNewGame}
+        onNewGame={() => openModal('difficulty')}
         onAutofillNotes={handleAutofillNotes}
         onClose={() => setIsMenuOpen(false)}
       />
+  
+      {modal === 'difficulty' && <DifficultyModal onSelectDifficulty={handleNewGame} />}
     </div>
   );
+  
 };
 
 export default GameScreen;

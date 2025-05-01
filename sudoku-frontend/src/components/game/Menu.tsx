@@ -51,7 +51,7 @@ const Menu = ({ isOpen, onNewGame, onAutofillNotes, onClose }: MenuProps) => {
         <div className="flex flex-col gap-4 mt-12">
           <button
             onClick={() => {
-              onNewGame();
+              openModal('difficulty');
               onClose();
             }}
             className="text-left w-full px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded"

@@ -7,13 +7,11 @@ import { X } from 'lucide-react';
 
 const AuthModal = () => {
   const { login } = useAuth();
-  const { closeModal } = useModal();
+  const { closeModal, closing } = useModal();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
-  const [closing, setClosing] = useState(false);
-
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -21,44 +19,36 @@ const AuthModal = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-  
+
     try {
       const data = isLogin
         ? await loginUser(username, password)
         : await registerUser(username, password);
-  
-      console.log("Login/Register response:", data);
-  
+
       if (data.access_token && typeof data.access_token === 'string') {
         const profile = await getUserProfile(data.access_token);
         login(data.access_token, profile.id);
         setLoginSuccess(true);
-        setTimeout(() => {
-          handleClose();
-        }, 1000);
+        setTimeout(closeModal, 1000);
       } else {
         setError(data.msg || 'Login failed');
       }
-    } catch (err) {
+    } catch {
       setError('Server error. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    setClosing(true);
-    setTimeout(() => {
-      closeModal();
-    }, 300);
-  };
-
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}>
-      <form onSubmit={handleSubmit} className="relative bg-zinc-900 text-white p-8 rounded-lg shadow-lg w-96 z-50">
+    <div className={`fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ${ closing ? 'animate-fade-out' : 'animate-fade-in'}`}>
+      <form
+        onSubmit={handleSubmit}
+        className="relative bg-zinc-900 text-white p-8 rounded-lg shadow-lg w-96 z-50"
+      >
         <button
           type="button"
-          onClick={handleClose}
+          onClick={closeModal}
           className="absolute top-3 right-3 text-white hover:text-red-400"
         >
           <X size={20} />
@@ -75,6 +65,7 @@ const AuthModal = () => {
             Welcome, {username}!
           </div>
         )}
+
         <div className="mb-4">
           <label className="block text-sm mb-1">Username</label>
           <input
@@ -86,17 +77,19 @@ const AuthModal = () => {
             required
           />
         </div>
+
         <div className="mb-6">
           <label className="block text-sm mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full border border-gray-600 bg-zinc-800 text-white rounded px-3 py-2 disabled:opacity-50"
-              disabled={loading || loginSuccess}
-              required
-            />
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            className="w-full border border-gray-600 bg-zinc-800 text-white rounded px-3 py-2 disabled:opacity-50"
+            disabled={loading || loginSuccess}
+            required
+          />
         </div>
+
         <button
           type="submit"
           disabled={loading || loginSuccess}

@@ -1,14 +1,10 @@
-// components/HomePage.tsx
+// src/components/HomePage.tsx
 import React from 'react';
 import { useModal } from '../context/ModalContext';
 import { useAuth } from '../context/AuthContext';
 import useUsername from '../hooks/useUsername';
 
-interface HomePageProps {
-  onStartGame: () => void;
-}
-
-const HomePage = ({ onStartGame }: HomePageProps) => {
+const HomePage = () => {
   const { openModal } = useModal();
   const { token, logout } = useAuth();
   const username = useUsername();
@@ -19,7 +15,10 @@ const HomePage = ({ onStartGame }: HomePageProps) => {
       <p className="mb-10 text-lg">Hello, <span className="font-semibold">{username}</span></p>
 
       <div className="flex flex-col space-y-4 w-32">
-        <button onClick={onStartGame} className="w-full py-2 text-center bg-blue-600 border border-black hover:bg-gray-600">
+        <button
+          onClick={() => openModal('difficulty')}
+          className="w-full py-2 text-center bg-blue-600 border border-black hover:bg-gray-600"
+        >
           New Game
         </button>
         <button
