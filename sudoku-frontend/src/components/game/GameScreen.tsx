@@ -214,7 +214,7 @@ const GameScreen = () => {
       </div>
   
       {/* Overlays and Modals */}
-      {isSolved && <VictoryScreen onNewGame={handleNewGame} time={time} />}
+      {isSolved && <VictoryScreen time={time} />}
   
       <Menu
         isOpen={isMenuOpen}
