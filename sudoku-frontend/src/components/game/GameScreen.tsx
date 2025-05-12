@@ -12,6 +12,8 @@ import useTimer from '../../hooks/useTimer';
 import { generateSudoku, Difficulty } from '../utils/generateSudoku';
 import { updateNotesAfterMove, autofillNotes } from '../utils/generateNotes';
 import { useModal } from '../../context/ModalContext';
+import { getHint } from '../../api/hint';
+import { useAuth } from '../../context/AuthContext';
 
 const generateNewPuzzle = (difficulty: Difficulty = 'medium') => {
   const { puzzle, solution } = generateSudoku(difficulty);
@@ -31,11 +33,29 @@ const GameScreen = () => {
   const { modal, openModal } = useModal();
   const { time, resetTimer, stopTimer, setIsRunning } = useTimer(true);
   const [loading, setLoading] = useState(true);
+  const { token } = useAuth();
+  const [hintMessage, setHintMessage] = useState<string | null>(null);
+  const [isHintLoading, setIsHintLoading] = useState(false);
   const [isNotesMode, setIsNotesMode] = useState(false);
 
   const [notes, setNotes] = useState<number[][][]>(
     Array(9).fill(null).map(() => Array(9).fill(null).map(() => []))
   );
+
+  const handleHint = async () => {
+    if (!currentPuzzle) return;
+    setIsHintLoading(true);
+    setHintMessage(null);
+    try {
+      const hint = await getHint(currentPuzzle, token ?? undefined);
+      setHintMessage(hint);
+    } catch (err: any) {
+      setHintMessage("Error getting hint.");
+      console.error(err);
+    } finally {
+      setIsHintLoading(false);
+    }
+  };
 
   const [undoStack, setUndoStack] = useState<{
     puzzle: (number | undefined)[][],
@@ -236,7 +256,10 @@ const GameScreen = () => {
           <ActionButton
             icon={Lightbulb}
             selected={selectedAction === 'hint'}
-            onClick={() => setSelectedAction(selectedAction === 'hint' ? null : 'hint')}
+            onClick={() => {
+              setSelectedAction(null); // hint shouldn't toggle
+              handleHint();
+            }}
           />
         </div>
       </div>
@@ -251,6 +274,12 @@ const GameScreen = () => {
       />
 
       {modal === 'difficulty' && <DifficultyModal onSelectDifficulty={handleNewGame} />}
+
+      {hintMessage && (
+        <div className="mt-4 text-center text-sm text-yellow-500 px-4 max-w-md">
+          💡 {hintMessage}
+        </div>
+      )}
     </div>
   );
 };

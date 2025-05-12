@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+import openai
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -28,6 +29,8 @@ jwt.init_app(app)
 
 # Blueprint for all routes
 api = Blueprint('api', __name__)
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # for vercel sqlite (non persistent db)
 def ensure_db_initialized():
@@ -132,6 +135,41 @@ def get_stats():
         "fastest_time": user.fastest_time,
         "average_time": avg_time
     }), 200
+
+@api.route('/hint', methods=['POST'])
+@jwt_required(optional=True)
+def get_hint():
+    data = request.get_json()
+    board = data.get("board")
+    if not board:
+        return jsonify({"error": "Missing board"}), 400
+
+    flat_board = "\n".join(
+        " ".join(str(cell) if cell is not None else "." for cell in row)
+        for row in board
+    )
+
+    prompt = (
+        "This is a Sudoku board with empty cells marked as dots.\n"
+        "Give a hint for a possible move without giving away the full solution.\n"
+        f"\n{flat_board}\n"
+        "Hint:"
+    )
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You're a Sudoku assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=100,
+            temperature=0.7
+        )
+        hint = response.choices[0].message.content.strip()
+        return jsonify({"hint": hint})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/")
 def index():
