@@ -22,7 +22,7 @@ npm start
 ```
 ### Backend
 ```
-cd sudoku-backend
+cd backend
 python app/__init__.py
 ```
 
