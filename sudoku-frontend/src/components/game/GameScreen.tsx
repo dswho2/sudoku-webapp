@@ -1,8 +1,7 @@
 // src/components/game/GameScreen.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Menu as MenuIcon, Undo2, Eraser, PenLine, Lightbulb } from 'lucide-react';
-import { X, Loader2 } from 'lucide-react';
+import { Menu as MenuIcon, Undo2, Eraser, PenLine, Lightbulb, X, Loader2 } from 'lucide-react';
 import GameBoard from './GameBoard';
 import NumberButton from './NumberButton';
 import ActionButton from './ActionButton';
@@ -33,9 +32,35 @@ const GameScreen = () => {
   const { time, resetTimer, stopTimer, setIsRunning } = useTimer(true);
   const [loading, setLoading] = useState(true);
   const [isNotesMode, setIsNotesMode] = useState(false);
+
   const [notes, setNotes] = useState<number[][][]>(
     Array(9).fill(null).map(() => Array(9).fill(null).map(() => []))
   );
+
+  const [undoStack, setUndoStack] = useState<{
+    puzzle: (number | undefined)[][],
+    notes: number[][][]
+  }[]>([]);
+
+  const pushUndo = () => {
+    if (!currentPuzzle) return;
+    setUndoStack(prev => [
+      ...prev,
+      {
+        puzzle: currentPuzzle.map(row => [...row]),
+        notes: notes.map(row => row.map(cell => [...cell]))
+      }
+    ]);
+  };
+
+  const handleUndo = () => {
+    const last = undoStack.pop();
+    if (last) {
+      setCurrentPuzzle(last.puzzle);
+      setNotes(last.notes);
+      setUndoStack([...undoStack]);
+    }
+  };
 
   useEffect(() => {
     setIsRunning(!isMenuOpen && modal !== 'auth' && modal !== 'stats' && modal !== 'difficulty');
@@ -54,22 +79,20 @@ const GameScreen = () => {
     setInitialPuzzle(puzzle);
     setCurrentPuzzle(puzzle.map(row => [...row]));
     setSolution(solution);
-  
+
     const elapsed = Date.now() - startTime;
     const timeout = setTimeout(() => setLoading(false), Math.max(0, MIN_LOADING_TIME_MS - elapsed));
     return () => clearTimeout(timeout);
   }, []);
-  
+
   const AnimatedDots = () => {
     const [dots, setDots] = useState('');
-
     useEffect(() => {
       const interval = setInterval(() => {
         setDots(prev => (prev.length < 3 ? prev + '.' : ''));
       }, 200);
       return () => clearInterval(interval);
     }, []);
-
     return <span className="text-lg font-medium">Loading{dots}</span>;
   };
 
@@ -83,8 +106,9 @@ const GameScreen = () => {
     setSelectedNumber(null);
     setSelectedAction(null);
     setIsSolved(false);
+    setUndoStack([]);
     resetTimer();
-  
+
     const elapsed = Date.now() - startTime;
     const timeout = setTimeout(() => setLoading(false), Math.max(0, MIN_LOADING_TIME_MS - elapsed));
     return () => clearTimeout(timeout);
@@ -96,6 +120,7 @@ const GameScreen = () => {
   };
 
   const updateNotes = (rowIndex: number, colIndex: number, number: number) => {
+    pushUndo();
     const updatedNotes = notes.map(row => row.map(cell => [...cell]));
     const cellNotes = updatedNotes[rowIndex][colIndex];
     if (cellNotes.includes(number)) {
@@ -108,7 +133,7 @@ const GameScreen = () => {
 
   const updateBoard = (rowIndex: number, colIndex: number, number: number) => {
     if (!currentPuzzle || !initialPuzzle) return;
-
+    pushUndo();
     const updatedPuzzle = currentPuzzle.map(row => [...row]);
     if (updatedPuzzle[rowIndex][colIndex] === number) {
       updatedPuzzle[rowIndex][colIndex] = undefined;
@@ -122,24 +147,31 @@ const GameScreen = () => {
     }
     setCurrentPuzzle(updatedPuzzle);
 
-    const isBoardFull = updatedPuzzle.every(row => 
-      row.every(cell => cell !== undefined)
-    );
-
+    const isBoardFull = updatedPuzzle.every(row => row.every(cell => cell !== undefined));
     if (isBoardFull) {
       const isCorrect = updatedPuzzle.every((row, rowIndex) =>
         row.every((cell, colIndex) => cell === solution?.[rowIndex][colIndex])
       );
-      if (isCorrect) {
-        stopTimer();
-      }
+      if (isCorrect) stopTimer();
       setIsSolved(isCorrect);
+    }
+  };
+
+  const clearCell = (row: number, col: number) => {
+    if (!currentPuzzle || !initialPuzzle) return;
+    if (initialPuzzle[row][col] === undefined) {
+      pushUndo();
+      const updatedPuzzle = currentPuzzle.map(row => [...row]);
+      const updatedNotes = notes.map(row => row.map(cell => [...cell]));
+      updatedPuzzle[row][col] = undefined;
+      updatedNotes[row][col] = [];
+      setCurrentPuzzle(updatedPuzzle);
+      setNotes(updatedNotes);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
-      {/* Header */}
       <div className="w-full max-w-md flex justify-between items-center py-4">
         <h1 className="text-3xl font-semibold">Sudoku</h1>
         <div className="flex items-center gap-2 relative">
@@ -151,8 +183,7 @@ const GameScreen = () => {
           </button>
         </div>
       </div>
-  
-      {/* Game Board Area with Loading Overlay */}
+
       <div className="w-full max-w-md flex flex-col items-center">
         <div className="relative w-full aspect-square bg-gray-100 rounded-md shadow-md flex items-center justify-center">
           {loading ? (
@@ -168,6 +199,8 @@ const GameScreen = () => {
               selectedNumber={selectedNumber}
               setSelectedNumber={setSelectedNumber}
               updateBoard={updateBoard}
+              selectedAction={selectedAction}
+              clearCell={clearCell}
               isNotesMode={isNotesMode}
               notes={notes}
               updateNotes={updateNotes}
@@ -175,8 +208,7 @@ const GameScreen = () => {
           )}
         </div>
       </div>
-  
-      {/* Buttons */}
+
       <div className="w-full max-w-md mt-6 flex flex-col gap-4">
         <div className="flex gap-1 justify-center">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
@@ -188,13 +220,9 @@ const GameScreen = () => {
             />
           ))}
         </div>
-  
+
         <div className="flex gap-1 justify-center">
-          <ActionButton
-            icon={Undo2}
-            selected={selectedAction === 'undo'}
-            onClick={() => setSelectedAction(selectedAction === 'undo' ? null : 'undo')}
-          />
+          <ActionButton icon={Undo2} selected={false} onClick={handleUndo} />
           <ActionButton
             icon={Eraser}
             selected={selectedAction === 'erase'}
@@ -212,21 +240,19 @@ const GameScreen = () => {
           />
         </div>
       </div>
-  
-      {/* Overlays and Modals */}
+
       {isSolved && <VictoryScreen time={time} />}
-  
+
       <Menu
         isOpen={isMenuOpen}
         onNewGame={() => openModal('difficulty')}
         onAutofillNotes={handleAutofillNotes}
         onClose={() => setIsMenuOpen(false)}
       />
-  
+
       {modal === 'difficulty' && <DifficultyModal onSelectDifficulty={handleNewGame} />}
     </div>
   );
-  
 };
 
 export default GameScreen;

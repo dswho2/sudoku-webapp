@@ -9,6 +9,9 @@ interface GameBoardProps {
   setSelectedNumber: React.Dispatch<React.SetStateAction<number | null>>;
   updateBoard: (rowIndex: number, colIndex: number, number: number) => void;
   
+  selectedAction: string | null;
+  clearCell: (rowIndex: number, colIndex: number) => void;
+  
   isNotesMode: boolean;
   notes: number[][][];
   updateNotes: (rowIndex: number, colIndex: number, number: number) => void;
@@ -20,6 +23,8 @@ const GameBoard = ({
   selectedNumber,
   setSelectedNumber,
   updateBoard,
+  selectedAction,
+  clearCell,
   isNotesMode,
   notes,
   updateNotes,
@@ -51,15 +56,24 @@ const GameBoard = ({
   };
 
   const handleCellClick = (row: number, col: number) => {
-    // set highlighted number to cell value if there is value, or null if value is undefined
+    const isEditable = initialPuzzle[row][col] === undefined;
+
+    // Highlight the number if present
     setHighlightedNumber(currentPuzzle[row][col] ?? null);
 
-    // if no currently selected cell or a new cell has been clicked
-    if (selectedCell === null || (selectedCell.row !== row || selectedCell.col !== col) ) {
-        setSelectedCell({ row, col });
-    } else { // else, must be unselecting a cell
-        setSelectedCell(null);
-        setHighlightedNumber(null);
+    if (selectedAction === 'erase' && isEditable) {
+      clearCell(row, col); // Erase logic
+      if (selectedCell !== null) {
+        setSelectedCell(null); // Clear selection for one-time erase
+      }
+      return; 
+    }
+
+    if (selectedCell === null || selectedCell.row !== row || selectedCell.col !== col) {
+      setSelectedCell({ row, col });
+    } else {
+      setSelectedCell(null);
+      setHighlightedNumber(null);
     }
   };
 
