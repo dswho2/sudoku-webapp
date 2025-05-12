@@ -275,9 +275,9 @@ const GameScreen = () => {
 
       {modal === 'difficulty' && <DifficultyModal onSelectDifficulty={handleNewGame} />}
 
-      {hintMessage && (
+      {(isHintLoading || hintMessage) && (
         <div className="mt-4 text-center text-sm text-yellow-500 px-4 max-w-md">
-          💡 {hintMessage}
+          💡 {isHintLoading ? <AnimatedDots/> : hintMessage}
         </div>
       )}
     </div>

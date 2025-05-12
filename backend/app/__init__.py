@@ -30,7 +30,7 @@ jwt.init_app(app)
 # Blueprint for all routes
 api = Blueprint('api', __name__)
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # for vercel sqlite (non persistent db)
 def ensure_db_initialized():
@@ -157,7 +157,7 @@ def get_hint():
     )
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You're a Sudoku assistant."},
