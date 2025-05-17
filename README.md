@@ -5,6 +5,9 @@ Webapp to play sudoku.
 
 Created with React and TypeScript using Tailwind CSS for the frontend, and Flask with PostgreSQL for the backend. This project features user authentication, persistent tracking of stats such as scores and puzzles solved, and integrates the OpenAI GPT API for intelligent hint generation. The frontend is deployed on Vercel, while the backend runs on Vercel Functions with a Neon-hosted PostgreSQL database.
 
+>**Hint Access Currently Restricted:**
+> The hint feature is currently only available for the admin log in, because its expensive :(
+
 ## Features
 - Fully playable Sudoku board with input validation and notes and timer
 - Autofill notes and undo functionality
