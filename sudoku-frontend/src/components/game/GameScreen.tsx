@@ -50,7 +50,11 @@ const GameScreen = () => {
       const hint = await getHint(currentPuzzle, token ?? undefined);
       setHintMessage(hint);
     } catch (err: any) {
-      setHintMessage("Error getting hint.");
+      if (err.status == 403) {
+        setHintMessage("GPT hints are only accessible from admin login to preserve tokens :(")
+      } else {
+        setHintMessage("Error getting hint.");
+      }
       console.error(err);
     } finally {
       setIsHintLoading(false);

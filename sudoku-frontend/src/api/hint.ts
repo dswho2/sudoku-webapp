@@ -12,11 +12,16 @@ export const getHint = async (board: (number | undefined)[][], token?: string) =
     body: JSON.stringify({ board })
   });
 
+  
+  const data = await response.json();
+
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || 'Failed to fetch hint');
+    if (response.status === 403) {
+      throw { message: data.error || 'Failed to fetch hint', status: response.status };
+    } else {
+      throw new Error(data.error || 'Failed to fetch hint');
+    }
   }
 
-  const data = await response.json();
   return data.hint;
 };

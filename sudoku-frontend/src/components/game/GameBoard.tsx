@@ -168,7 +168,7 @@ const GameBoard = ({
                 isConflicted={isConflicted(rowIndex, colIndex)}
                 onClick={() => handleCellClick(rowIndex, colIndex)}
                 notes={notes[rowIndex][colIndex]}
-                highlightedNumber={highlightedNumber} // Add this prop
+                highlightedNumber={highlightedNumber}
               />
             </div>
           ))

@@ -139,6 +139,17 @@ def get_stats():
 @api.route('/hint', methods=['POST'])
 @jwt_required(optional=True)
 def get_hint():
+    # checks for admin login to preserve gpt token usage
+    user_id = get_jwt_identity()
+    if user_id is None:
+        return jsonify({"error": "Only admin login can request hints"}), 403
+    
+    user = db.session.get(User, user_id)
+    if not user or user.username != "admin":
+        return jsonify({"error": "Only admin login can request hints"}), 403
+    
+
+
     data = request.get_json()
     board = data.get("board")
     if not board:
