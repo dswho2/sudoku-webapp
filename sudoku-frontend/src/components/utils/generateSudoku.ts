@@ -5,8 +5,8 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 
 const clueCounts: Record<Difficulty, number> = {
   easy: 40,
-  medium: 32,
-  hard: 24,
+  medium: 25,
+  hard: 17,
 };
 
 const generateSolvedBoard = (): SudokuBoard => {
